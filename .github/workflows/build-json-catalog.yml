@@ -1,0 +1,62 @@
+name: Update VitaArchive catalog
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout VitaArchive
+      uses: actions/checkout@v4
+
+    - name: Checkout NeoVitaDB Catalog
+      uses: actions/checkout@v4
+      with:
+        repository: robin994/NeoVitaDB-Catalog
+        path: NeoVitaDB-Catalog
+
+    - name: Install jq
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
+    - name: Generate catalog
+      run: |
+        mkdir -p data
+        mkdir -p images/icons
+
+        echo "[+] Copiando iconos..."
+
+        cp NeoVitaDB-Catalog/icons_vita/*.png images/icons/
+
+        echo "[+] Generando apps.json"
+
+        jq -s '
+          map(
+            . + {
+              icon:
+                (
+                  "images/icons/"
+                  +
+                  (.icon | sub("\\.json$"; ".png"))
+                )
+            }
+          )
+          | sort_by(.name)
+        ' NeoVitaDB-Catalog/apps/vita/*.json > data/apps.json
+
+        echo "[+] Total apps:"
+        jq length data/apps.json
+
+    - name: Commit changes
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "Update VitaArchive catalog"
