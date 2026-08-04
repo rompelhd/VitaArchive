@@ -6,10 +6,7 @@ const typeFilter = document.getElementById("type-filter");
 const appCount = document.getElementById("app-count");
 
 const CATALOG =
-    "https://api.github.com/repos/robin994/NeoVitaDB-Catalog/contents/apps/vita";
-
-const ICONS =
-    "https://raw.githubusercontent.com/robin994/NeoVitaDB-Catalog/main/icons/";
+    "https://raw.githubusercontent.com/rompelhd/VitaArchive/main/data/apps.json";
 
 async function loadApps() {
 
@@ -21,84 +18,57 @@ async function loadApps() {
             throw new Error("No se pudo cargar el catálogo");
         }
 
-        const files = await response.json();
+        const json = await response.json();
 
-        const jsonFiles = files.filter(file => file.name.endsWith(".json"));
+        const list = Array.isArray(json)
+            ? json
+            : json.apps || [];
 
-        const data = await Promise.all(
+        const data = list.map(app => {
 
-            jsonFiles.map(async file => {
+            return {
 
-                const app = await fetch(file.download_url).then(r => r.json());
+                name: app.name,
 
-                let version = "Desconocida";
-                let download = `https://github.com/${app.repo}/releases`;
+                description: app.description || "",
 
-                if (app.repo) {
+                version: app.version || "Desconocida",
 
-                    try {
+                category: app.category || "Otros",
 
-                        const release = await fetch(
-                            `https://api.github.com/repos/${app.repo}/releases/latest`
-                        );
+                type: app.category || "Otros",
 
-                        if (release.ok) {
+                author: app.author || "Desconocido",
 
-                            const rel = await release.json();
+                icon: app.icon || "",
 
-                            version = rel.tag_name || "Desconocida";
+                download:
+                    app.download ||
+                    app.vpk ||
+                    app.url ||
+                    "#"
 
-                            if (rel.assets && rel.assets.length > 0) {
+            };
 
-                                const asset = rel.assets.find(a =>
-                                    a.name.toLowerCase().endsWith(".vpk")
-                                );
+        });
 
-                                if (asset) {
-                                    download = asset.browser_download_url;
-                                }
 
-                            }
-
-                        }
-
-                    } catch (e) {
-
-                        console.warn("No se pudo obtener la release de", app.name);
-
-                    }
-
-                }
-
-                return {
-
-                    name: app.name,
-                    description: app.description,
-                    version: version,
-                    category: app.category,
-                    type: app.category,
-                    author: app.author,
-                    icon: app.icon
-                        ? ICONS + app.icon
-                        : "",
-                    download: download
-
-                };
-
-            })
-
+        apps = data.sort((a, b) =>
+            a.name.localeCompare(b.name)
         );
 
-        apps = data.sort((a, b) => a.name.localeCompare(b.name));
-
         renderApps(apps);
+
 
     } catch (err) {
 
         console.error(err);
 
-        container.innerHTML = "<p>Error cargando la tienda.</p>";
-        appCount.textContent = "Error al cargar las aplicaciones.";
+        container.innerHTML =
+            "<p>Error cargando la tienda.</p>";
+
+        appCount.textContent =
+            "Error al cargar las aplicaciones.";
 
     }
 
