@@ -41,7 +41,7 @@ async function loadApps() {
 
                 description: app.description || "",
 
-                version: "Desconocida",
+                //version: "Desconocida",
 
                 category: app.category || "Otros",
 
