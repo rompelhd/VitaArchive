@@ -115,7 +115,7 @@ function renderApps(list) {
 
             <div class="app-info">
 
-                <span>Versión: ${app.version}</span>
+                <!-- <span>Versión: ${app.version}</span> -->
 
                 <span>Categoría: ${app.category}</span>
 
