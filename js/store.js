@@ -24,33 +24,85 @@ async function loadApps() {
             ? json
             : json.apps || [];
 
-        const data = list.map(app => {
+        const data = await Promise.all(
 
-            return {
+            list.map(async app => {
 
-                name: app.name,
+                let version = "Desconocida";
+                let download = "#";
 
-                description: app.description || "",
+                if (app.repo) {
 
-                version: app.version || "Desconocida",
+                    try {
 
-                category: app.category || "Otros",
+                        const release = await fetch(
+                            `https://api.github.com/repos/${app.repo}/releases/latest`
+                        );
 
-                type: app.category || "Otros",
+                        if (release.ok) {
 
-                author: app.author || "Desconocido",
+                            const rel = await release.json();
 
-                icon: app.icon || "",
+                            version =
+                                rel.tag_name ||
+                                "Desconocida";
 
-                download:
-                    app.download ||
-                    app.vpk ||
-                    app.url ||
-                    "#"
 
-            };
+                            if (rel.assets) {
 
-        });
+                                const asset = rel.assets.find(a =>
+                                    a.name.toLowerCase().endsWith(".vpk")
+                                );
+
+
+                                if (asset) {
+
+                                    download =
+                                        asset.browser_download_url;
+
+                                }
+
+                            }
+
+                        }
+
+                    } catch (e) {
+
+                        console.warn(
+                            "No se pudo obtener la release de",
+                            app.name
+                        );
+
+                    }
+
+                }
+
+
+                return {
+
+                    name: app.name,
+
+                    description: app.description || "",
+
+                    version: version,
+
+                    category: app.category || "Otros",
+
+                    type: app.category || "Otros",
+
+                    author: app.author || "Desconocido",
+
+                    icon: app.icon || "",
+
+                    download: download,
+
+                    data: app.data || ""
+
+                };
+
+            })
+
+        );
 
 
         apps = data.sort((a, b) =>
@@ -121,13 +173,31 @@ function renderApps(list) {
 
             </div>
 
-            <a class="download"
-               href="${app.download}"
-               target="_blank">
+            ${app.download !== "#"
+                ? `
+                <a class="download"
+                   href="${app.download}"
+                   target="_blank">
 
-                Descargar VPK
+                    Descargar VPK
 
-            </a>
+                </a>
+                `
+                : ""
+            }
+
+            ${app.data
+                ? `
+                <a class="download"
+                   href="${app.data}"
+                   target="_blank">
+
+                    Descargar Data
+
+                </a>
+                `
+                : ""
+            }
 
         `;
 
