@@ -17,11 +17,9 @@ jobs:
     - name: Checkout VitaArchive
       uses: actions/checkout@v4
 
-    - name: Checkout NeoVitaDB Catalog
-      uses: actions/checkout@v4
-      with:
-        repository: robin994/NeoVitaDB-Catalog
-        path: NeoVitaDB-Catalog
+    - name: Clone NeoVitaDB Catalog
+      run: |
+        git clone --depth 1 https://github.com/robin994/NeoVitaDB-Catalog.git NeoVitaDB-Catalog
 
     - name: Install jq
       run: |
@@ -55,6 +53,10 @@ jobs:
 
         echo "[+] Total apps:"
         jq length data/apps.json
+
+    - name: Remove cloned repository
+      run: |
+        rm -rf NeoVitaDB-Catalog
 
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v5
