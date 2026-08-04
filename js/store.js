@@ -24,85 +24,40 @@ async function loadApps() {
             ? json
             : json.apps || [];
 
-        const data = await Promise.all(
+        const data = list.map(app => {
 
-            list.map(async app => {
+            let download = "#";
 
-                let version = "Desconocida";
-                let download = "#";
+            if (app.repo) {
 
-                if (app.repo) {
+                download =
+                    `https://github.com/${app.repo}/releases/latest`;
 
-                    try {
+            }
 
-                        const release = await fetch(
-                            `https://api.github.com/repos/${app.repo}/releases/latest`
-                        );
+            return {
 
-                        if (release.ok) {
+                name: app.name,
 
-                            const rel = await release.json();
+                description: app.description || "",
 
-                            version =
-                                rel.tag_name ||
-                                "Desconocida";
+                version: "Desconocida",
 
+                category: app.category || "Otros",
 
-                            if (rel.assets) {
+                type: app.category || "Otros",
 
-                                const asset = rel.assets.find(a =>
-                                    a.name.toLowerCase().endsWith(".vpk")
-                                );
+                author: app.author || "Desconocido",
 
+                icon: app.icon || "",
 
-                                if (asset) {
+                download: download,
 
-                                    download =
-                                        asset.browser_download_url;
+                data: app.data || ""
 
-                                }
+            };
 
-                            }
-
-                        }
-
-                    } catch (e) {
-
-                        console.warn(
-                            "No se pudo obtener la release de",
-                            app.name
-                        );
-
-                    }
-
-                }
-
-
-                return {
-
-                    name: app.name,
-
-                    description: app.description || "",
-
-                    version: version,
-
-                    category: app.category || "Otros",
-
-                    type: app.category || "Otros",
-
-                    author: app.author || "Desconocido",
-
-                    icon: app.icon || "",
-
-                    download: download,
-
-                    data: app.data || ""
-
-                };
-
-            })
-
-        );
+        });
 
 
         apps = data.sort((a, b) =>
