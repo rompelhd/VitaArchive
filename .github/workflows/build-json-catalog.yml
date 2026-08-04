@@ -16,10 +16,13 @@ jobs:
 
     - name: Checkout VitaArchive
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Clone NeoVitaDB Catalog
       run: |
-        git clone --depth 1 https://github.com/robin994/NeoVitaDB-Catalog.git NeoVitaDB-Catalog
+        git clone --depth 1 https://github.com/robin994/NeoVitaDB-Catalog.git .tmp-NeoVitaDB
+        rm -rf .tmp-NeoVitaDB/.git
 
     - name: Install jq
       run: |
@@ -33,7 +36,7 @@ jobs:
 
         echo "[+] Copiando iconos..."
 
-        cp NeoVitaDB-Catalog/icons_vita/*.png images/icons/
+        cp .tmp-NeoVitaDB/icons_vita/*.png images/icons/
 
         echo "[+] Generando apps.json"
 
@@ -49,14 +52,14 @@ jobs:
             }
           )
           | sort_by(.name)
-        ' NeoVitaDB-Catalog/apps/vita/*.json > data/apps.json
+        ' .tmp-NeoVitaDB/apps/vita/*.json > data/apps.json
 
         echo "[+] Total apps:"
         jq length data/apps.json
 
-    - name: Remove cloned repository
+    - name: Remove temporary files
       run: |
-        rm -rf NeoVitaDB-Catalog
+        rm -rf .tmp-NeoVitaDB
 
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v5
