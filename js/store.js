@@ -8,6 +8,18 @@ const appCount = document.getElementById("app-count");
 const CATALOG =
     "https://raw.githubusercontent.com/rompelhd/VitaArchive/main/data/apps.json";
 
+function formatDate(date) {
+
+    if (!date) return "-";
+
+    return new Date(date).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+
+}
+
 async function loadApps() {
 
     try {
@@ -24,39 +36,43 @@ async function loadApps() {
             ? json
             : json.apps || [];
 
-        apps = list.map(app => ({
+        apps = list
+            .map(app => ({
 
-            name: app.name,
+                name: app.name,
 
-            description: app.long_description || "",
+                description: app.long_description || "",
 
-            version: app.version || "",
+                version: app.version || "",
 
-            category: app.type || "",
+                category: app.type || "",
 
-            type: app.type || "",
+                type: app.type || "",
 
-            author: app.author || "Desconocido",
+                author: app.author || "Desconocido",
 
-            icon: app.icon || "",
+                icon: app.icon || "",
 
-            download: app.url || "#",
+                download: app.url || "#",
 
-            data: app.data || "",
+                data: app.data || "",
 
-            downloads: app.downloads || "0",
+                downloads: app.downloads || "0",
 
-            size: app.size || "0",
+                size: app.size || "0",
 
-            date: app.date || "",
+                date: app.date || "",
 
-            source: app.source || "",
+                added: app.added || "",
 
-            release: app.release_page || "",
+                source: app.source || "",
 
-            changelog: app.changelog || ""
+                release: app.release_page || "",
 
-        }));
+                changelog: app.changelog || ""
+
+            }))
+            .sort((a, b) => new Date(b.added) - new Date(a.added));
 
         renderApps(apps);
 
@@ -114,7 +130,7 @@ function renderApps(list) {
 
                 <span>Descargas: ${app.downloads}</span>
 
-                <span>Fecha: ${app.date}</span>
+                <span>Añadido: ${formatDate(app.added)}</span>
 
                 <span>
                     Creador:
