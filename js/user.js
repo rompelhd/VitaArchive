@@ -1,20 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
 
 
-    const params = new URLSearchParams(
-        window.location.search
-    );
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
 
 
-    const username = params.get("user");
+    const username =
+        params.get("user");
+
 
 
     const nameElement =
         document.getElementById("username");
 
 
+
     const descriptionElement =
         document.getElementById("user-description");
+
 
 
     const appsContainer =
@@ -22,33 +27,107 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    if (!username) {
 
-        nameElement.textContent = "Usuario no encontrado";
 
-        return;
+    const TYPES = {
+
+        1: "Original Game",
+
+        2: "Game Port",
+
+        4: "Utility",
+
+        5: "Emulator"
+
+    };
+
+
+
+
+
+    function formatDate(date) {
+
+
+        if (!date) return "-";
+
+
+        const parts =
+            date.split("-");
+
+
+        if (parts.length !== 3) {
+
+            return date;
+
+        }
+
+
+
+        const months = [
+
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+
+        ];
+
+
+
+        return `${months[parseInt(parts[1]) - 1]} ${parseInt(parts[2])}, ${parts[0]}`;
+
 
     }
 
 
 
-    nameElement.textContent = username;
+
+
+    if (!username) {
+
+
+        nameElement.textContent =
+            "User not found";
+
+
+        return;
+
+
+    }
+
+
+
+
+    nameElement.textContent =
+        username;
+
+
 
 
 
     fetch("./data/apps.json")
-
 
         .then(response => {
 
 
             if (!response.ok) {
 
+
                 throw new Error(
-                    "No se pudo cargar apps.json"
+                    "Could not load apps.json"
                 );
 
+
             }
+
 
 
             return response.json();
@@ -57,25 +136,22 @@ document.addEventListener("DOMContentLoaded", () => {
         })
 
 
+
         .then(apps => {
-
-
-
-            console.log("Apps cargadas:", apps);
-
-            console.log("Buscando usuario:", username);
 
 
 
             const userApps = apps.filter(app =>
 
-                app.author.toLowerCase() === username.toLowerCase()
+
+                app.author &&
+
+                app.author.toLowerCase() ===
+                username.toLowerCase()
+
 
             );
 
-
-
-            console.log("Apps del usuario:", userApps);
 
 
 
@@ -83,19 +159,28 @@ document.addEventListener("DOMContentLoaded", () => {
             if (userApps.length === 0) {
 
 
+
                 descriptionElement.textContent =
-                    "Este usuario todavía no tiene publicaciones.";
+                    "This user has not published any applications yet.";
+
 
 
                 return;
+
+
 
             }
 
 
 
+
+
             descriptionElement.textContent =
 
-                `${userApps.length} publicación(es) en Vita Homebrew Store`;
+                `${userApps.length} published application(s) in VitaArchive`;
+
+
+
 
 
 
@@ -104,48 +189,141 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-                const card = document.createElement("article");
+                const card =
+                    document.createElement("article");
 
 
-                card.className = "detail";
+
+                card.className =
+                    "detail";
+
+
 
 
 
                 card.innerHTML = `
 
 
+
+                    ${app.icon
+                        ? `<img src="${app.icon}" alt="${app.name}">`
+                        : ""
+                    }
+
+
+
                     <h3>
+
                         ${app.name}
+
                     </h3>
 
 
-                    <p>
-                        ${app.description}
-                    </p>
+
 
 
                     <p>
 
-                        Categoría:
-                        ${app.category}
-
-                        <br>
-
-                        Versión:
-                        ${app.version}
+                        ${app.long_description || ""}
 
                     </p>
 
 
-                    <a class="download"
-                    href="${app.download}">
 
-                        Descargar VPK
 
-                    </a>
+
+                    <div class="app-info">
+
+
+                        <span>
+
+                            Version:
+                            ${app.version || "-"}
+
+                        </span>
+
+
+
+                        <span>
+
+                            Type:
+                            ${TYPES[app.type] || "Unknown"}
+
+                        </span>
+
+
+
+                        <span>
+
+                            Added:
+                            ${formatDate(app.date)}
+
+                        </span>
+
+
+
+                    </div>
+
+
+
+
+
+                    ${app.url
+
+                        ? `
+
+                        <a class="download"
+
+                           href="${app.url}"
+
+                           target="_blank">
+
+
+                            Download VPK
+
+
+                        </a>
+
+
+                        `
+
+                        : ""
+
+                    }
+
+
+
+
+
+                    ${app.data
+
+                        ? `
+
+                        <a class="download"
+
+                           href="${app.data}"
+
+                           target="_blank">
+
+
+                            Download Data
+
+
+                        </a>
+
+
+                        `
+
+                        : ""
+
+                    }
+
+
 
 
                 `;
+
+
 
 
 
@@ -157,10 +335,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+
         })
 
 
+
         .catch(error => {
+
 
 
             console.error(
@@ -169,13 +350,17 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
+
             appsContainer.innerHTML = `
 
                 <p>
-                Error cargando aplicaciones.
+
+                    Error loading applications.
+
                 </p>
 
             `;
+
 
 
         });
