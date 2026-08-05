@@ -24,48 +24,41 @@ async function loadApps() {
             ? json
             : json.apps || [];
 
-        const data = list.map(app => {
+        apps = list.map(app => ({
 
-            let download = "#";
+            name: app.name,
 
-            if (app.repo) {
+            description: app.long_description || "",
 
-                download =
-                    `https://github.com/${app.repo}/releases/latest`;
+            version: app.version || "",
 
-            }
+            category: app.type || "",
 
-            return {
+            type: app.type || "",
 
-                name: app.name,
+            author: app.author || "Desconocido",
 
-                description: app.description || "",
+            icon: app.icon || "",
 
-                //version: "Desconocida",
+            download: app.url || "#",
 
-                category: app.category || "Otros",
+            data: app.data || "",
 
-                type: app.category || "Otros",
+            downloads: app.downloads || "0",
 
-                author: app.author || "Desconocido",
+            size: app.size || "0",
 
-                icon: app.icon || "",
+            date: app.date || "",
 
-                download: download,
+            source: app.source || "",
 
-                data: app.data || ""
+            release: app.release_page || "",
 
-            };
+            changelog: app.changelog || ""
 
-        });
-
-
-        apps = data.sort((a, b) =>
-            a.name.localeCompare(b.name)
-        );
+        }));
 
         renderApps(apps);
-
 
     } catch (err) {
 
@@ -115,9 +108,13 @@ function renderApps(list) {
 
             <div class="app-info">
 
-                <!-- <span>Versión: ${app.version}</span> -->
+                <span>Versión: ${app.version}</span>
 
-                <span>Categoría: ${app.category}</span>
+                <span>Tipo: ${app.type}</span>
+
+                <span>Descargas: ${app.downloads}</span>
+
+                <span>Fecha: ${app.date}</span>
 
                 <span>
                     Creador:
@@ -148,6 +145,32 @@ function renderApps(list) {
                    target="_blank">
 
                     Descargar Data
+
+                </a>
+                `
+                : ""
+            }
+
+            ${app.source
+                ? `
+                <a class="download"
+                   href="${app.source}"
+                   target="_blank">
+
+                    Código fuente
+
+                </a>
+                `
+                : ""
+            }
+
+            ${app.release
+                ? `
+                <a class="download"
+                   href="${app.release}"
+                   target="_blank">
+
+                    Release
 
                 </a>
                 `
