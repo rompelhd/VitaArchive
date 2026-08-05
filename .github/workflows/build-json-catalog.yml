@@ -14,54 +14,57 @@ jobs:
 
     steps:
 
-    - name: Checkout VitaArchive
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout VitaArchive
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Clone NeoVitaDB Catalog
-      run: |
-        git clone --depth 1 https://github.com/robin994/NeoVitaDB-Catalog.git .tmp-NeoVitaDB
-        rm -rf .tmp-NeoVitaDB/.git
+      - name: Clone NeoVitaDB Catalog
+        run: |
+          git clone --depth 1 https://github.com/robin994/NeoVitaDB-Catalog.git .tmp-NeoVitaDB
+          rm -rf .tmp-NeoVitaDB/.git
 
-    - name: Install jq
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y jq
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
 
-    - name: Generate catalog
-      run: |
-        mkdir -p data
-        mkdir -p images/icons
+      - name: Generate catalog
+        run: |
+          mkdir -p data
+          mkdir -p images/icons
 
-        echo "[+] Copiando iconos..."
+          echo "[+] Copiando iconos..."
+          cp .tmp-NeoVitaDB/icons_vita/*.png images/icons/
 
-        cp .tmp-NeoVitaDB/icons_vita/*.png images/icons/
+          echo "[+] Descargando vita.json..."
+          curl -L \
+            https://robin994.github.io/NeoVitaDB-Catalog/vita.json \
+            -o vita.json
 
-        echo "[+] Generando apps.json"
+          echo "[+] Adaptando catálogo..."
 
-        jq -s '
-          map(
-            . + {
-              icon:
+          jq '
+            map(
+              .icon =
                 (
-                  "images/icons/"
-                  +
-                  (.icon | sub("\\.json$"; ".png"))
+                  if (.icon | startswith("images/icons/"))
+                  then .icon
+                  else "images/icons/" + .icon
+                  end
                 )
-            }
-          )
-          | sort_by(.name)
-        ' .tmp-NeoVitaDB/apps/vita/*.json > data/apps.json
+            )
+          ' vita.json > data/apps.json
 
-        echo "[+] Total apps:"
-        jq length data/apps.json
+          echo "[+] Total apps:"
+          jq length data/apps.json
 
-    - name: Remove temporary files
-      run: |
-        rm -rf .tmp-NeoVitaDB
+      - name: Remove temporary files
+        run: |
+          rm -rf .tmp-NeoVitaDB
+          rm -f vita.json
 
-    - name: Commit changes
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "Update VitaArchive catalog"
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update VitaArchive catalog"
