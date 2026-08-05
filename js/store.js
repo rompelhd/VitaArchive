@@ -8,17 +8,40 @@ const appCount = document.getElementById("app-count");
 const CATALOG =
     "https://raw.githubusercontent.com/rompelhd/VitaArchive/main/data/apps.json";
 
+
 function formatDate(date) {
 
     if (!date) return "-";
 
-    return new Date(date).toLocaleDateString("es-ES", {
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-    });
+    const parts = date.split("-");
+
+    if (parts.length !== 3) {
+        return date;
+    }
+
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+
+    const months = [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre"
+    ];
+
+    return `${parseInt(day)} de ${months[parseInt(month) - 1]} de ${year}`;
 
 }
+
 
 async function loadApps() {
 
@@ -30,16 +53,19 @@ async function loadApps() {
             throw new Error("No se pudo cargar el catálogo");
         }
 
+
         const json = await response.json();
+
 
         const list = Array.isArray(json)
             ? json
             : json.apps || [];
 
+
         apps = list
             .map(app => ({
 
-                name: app.name,
+                name: app.name || "",
 
                 description: app.long_description || "",
 
@@ -63,8 +89,6 @@ async function loadApps() {
 
                 date: app.date || "",
 
-                added: app.added || "",
-
                 source: app.source || "",
 
                 release: app.release_page || "",
@@ -72,9 +96,17 @@ async function loadApps() {
                 changelog: app.changelog || ""
 
             }))
-            .sort((a, b) => new Date(b.added) - new Date(a.added));
+
+            .sort((a, b) => {
+
+                return new Date(b.date + "T00:00:00") -
+                       new Date(a.date + "T00:00:00");
+
+            });
+
 
         renderApps(apps);
+
 
     } catch (err) {
 
@@ -90,12 +122,16 @@ async function loadApps() {
 
 }
 
+
+
 function renderApps(list) {
 
     container.innerHTML = "";
 
+
     appCount.textContent =
         `Mostrando ${list.length} de ${apps.length} aplicaciones`;
+
 
     if (list.length === 0) {
 
@@ -106,11 +142,15 @@ function renderApps(list) {
 
     }
 
+
     list.forEach(app => {
+
 
         const card = document.createElement("article");
 
+
         card.className = "detail";
+
 
         card.innerHTML = `
 
@@ -118,19 +158,35 @@ function renderApps(list) {
                 ? `<img src="${app.icon}" alt="${app.name}">`
                 : ""}
 
+
             <h3>${app.name}</h3>
+
 
             <p>${app.description}</p>
 
+
             <div class="app-info">
 
-                <span>Versión: ${app.version}</span>
 
-                <span>Tipo: ${app.type}</span>
+                <span>
+                    Versión: ${app.version}
+                </span>
 
-                <span>Descargas: ${app.downloads}</span>
 
-                <span>Añadido: ${formatDate(app.added)}</span>
+                <span>
+                    Tipo: ${app.type}
+                </span>
+
+
+                <span>
+                    Descargas: ${app.downloads}
+                </span>
+
+
+                <span>
+                    Añadido: ${formatDate(app.date)}
+                </span>
+
 
                 <span>
                     Creador:
@@ -139,7 +195,10 @@ function renderApps(list) {
                     </a>
                 </span>
 
+
             </div>
+
+
 
             ${app.download !== "#"
                 ? `
@@ -154,6 +213,8 @@ function renderApps(list) {
                 : ""
             }
 
+
+
             ${app.data
                 ? `
                 <a class="download"
@@ -166,6 +227,8 @@ function renderApps(list) {
                 `
                 : ""
             }
+
+
 
             ${app.source
                 ? `
@@ -180,6 +243,8 @@ function renderApps(list) {
                 : ""
             }
 
+
+
             ${app.release
                 ? `
                 <a class="download"
@@ -193,38 +258,61 @@ function renderApps(list) {
                 : ""
             }
 
+
         `;
+
 
         container.appendChild(card);
 
+
     });
+
 
 }
 
+
+
 function filterApps() {
 
+
     const text = searchInput.value.toLowerCase();
+
     const type = typeFilter.value;
 
+
+
     const filtered = apps.filter(app => {
+
 
         const matchesText =
             app.name.toLowerCase().includes(text) ||
             app.description.toLowerCase().includes(text);
 
+
+
         const matchesType =
             type === "all" ||
             app.type === type;
 
+
+
         return matchesText && matchesType;
+
 
     });
 
+
+
     renderApps(filtered);
+
 
 }
 
+
+
 searchInput.addEventListener("input", filterApps);
+
 typeFilter.addEventListener("change", filterApps);
+
 
 loadApps();
