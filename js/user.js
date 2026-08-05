@@ -91,6 +91,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+    function renderAuthors(author) {
+
+
+        if (!author) {
+
+            return "Unknown";
+
+        }
+
+
+
+        return author
+            .split(",")
+            .map(name => name.trim())
+            .map(name => `
+
+                <a href="user.html?user=${encodeURIComponent(name)}">
+
+                    ${name}
+
+                </a>
+
+            `)
+            .join(", ");
+
+    }
+
+
+
+
+
+
+
     if (!username) {
 
 
@@ -141,16 +174,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-            const userApps = apps.filter(app =>
+            const userApps = apps.filter(app => {
 
 
-                app.author &&
+                if (!app.author) {
 
-                app.author.toLowerCase() ===
-                username.toLowerCase()
+                    return false;
+
+                }
 
 
-            );
+
+                const authors = app.author
+                    .split(",")
+                    .map(name => name.trim().toLowerCase());
+
+
+
+                return authors.includes(
+                    username.toLowerCase()
+                );
+
+
+            });
+
+
 
 
 
@@ -206,9 +254,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                     ${app.icon
+
                         ? `<img src="${app.icon}" alt="${app.name}">`
+
                         : ""
+
                     }
+
+
 
 
 
@@ -257,6 +310,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             Added:
                             ${formatDate(app.date)}
+
+                        </span>
+
+
+
+                        <span>
+
+                            Creator:
+                            ${renderAuthors(app.author)}
 
                         </span>
 
